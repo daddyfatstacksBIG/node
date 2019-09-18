@@ -1,6 +1,6 @@
-'use strict'
-var path = require('path')
-var isWindows = require('./is-windows.js')
+"use strict";
+var path = require("path");
+var isWindows = require("./is-windows.js");
 
 /*
 Escape the name of an executable suitable for passing to the system shell.
@@ -12,19 +12,23 @@ Unix-likes are a little more complicated, wrap in single quotes and escape
 any single quotes in the filename.
 */
 
-module.exports = escapify
+module.exports = escapify;
 
-function windowsQuotes (str) {
-  if (!/ /.test(str)) return str
-  return '"' + str + '"'
+function windowsQuotes(str) {
+  if (!/ /.test(str)) return str;
+  return '"' + str + '"';
 }
 
-function escapify (str) {
+function escapify(str) {
   if (isWindows) {
-    return path.normalize(str).split(/\\/).map(windowsQuotes).join('\\')
+    return path
+      .normalize(str)
+      .split(/\\/)
+      .map(windowsQuotes)
+      .join("\\");
   } else if (/[^-_.~/\w]/.test(str)) {
-    return "'" + str.replace(/'/g, "'\"'\"'") + "'"
+    return "'" + str.replace(/'/g, "'\"'\"'") + "'";
   } else {
-    return str
+    return str;
   }
 }
