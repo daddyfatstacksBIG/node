@@ -6,4 +6,4 @@ BEGIN {
 }
 
 print $seen{$_} = $_ unless $seen{$_}
-' > AUTHORS
+' >AUTHORS
