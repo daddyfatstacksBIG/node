@@ -71,18 +71,18 @@ v8::Local<v8::Object> AddressToJS(
 
 template <typename T, int (*F)(const typename T::HandleType*, sockaddr*, int*)>
 void GetSockOrPeerName(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  T* wrap;
-  ASSIGN_OR_RETURN_UNWRAP(&wrap,
-                          args.Holder(),
-                          args.GetReturnValue().Set(UV_EBADF));
-  CHECK(args[0]->IsObject());
-  sockaddr_storage storage;
-  int addrlen = sizeof(storage);
-  sockaddr* const addr = reinterpret_cast<sockaddr*>(&storage);
-  const int err = F(&wrap->handle_, addr, &addrlen);
-  if (err == 0)
-    AddressToJS(wrap->env(), addr, args[0].As<v8::Object>());
-  args.GetReturnValue().Set(err);
+    T* wrap;
+    ASSIGN_OR_RETURN_UNWRAP(&wrap,
+                            args.Holder(),
+                            args.GetReturnValue().Set(UV_EBADF));
+    CHECK(args[0]->IsObject());
+    sockaddr_storage storage;
+    int addrlen = sizeof(storage);
+    sockaddr* const addr = reinterpret_cast<sockaddr*>(&storage);
+    const int err = F(&wrap->handle_, addr, &addrlen);
+    if (err == 0)
+        AddressToJS(wrap->env(), addr, args[0].As<v8::Object>());
+    args.GetReturnValue().Set(err);
 }
 
 void PrintStackTrace(v8::Isolate* isolate, v8::Local<v8::StackTrace> stack);
@@ -106,41 +106,49 @@ void PromiseRejectCallback(v8::PromiseRejectMessage message);
 }  // namespace task_queue
 
 class NodeArrayBufferAllocator : public ArrayBufferAllocator {
- public:
-  inline uint32_t* zero_fill_field() { return &zero_fill_field_; }
+public:
+    inline uint32_t* zero_fill_field() {
+        return &zero_fill_field_;
+    }
 
-  void* Allocate(size_t size) override;  // Defined in src/node.cc
-  void* AllocateUninitialized(size_t size) override
-    { return node::UncheckedMalloc(size); }
-  void Free(void* data, size_t) override { free(data); }
-  virtual void* Reallocate(void* data, size_t old_size, size_t size) {
-    return static_cast<void*>(
-        UncheckedRealloc<char>(static_cast<char*>(data), size));
-  }
-  virtual void RegisterPointer(void* data, size_t size) {}
-  virtual void UnregisterPointer(void* data, size_t size) {}
+    void* Allocate(size_t size) override;  // Defined in src/node.cc
+    void* AllocateUninitialized(size_t size) override
+    {
+        return node::UncheckedMalloc(size);
+    }
+    void Free(void* data, size_t) override {
+        free(data);
+    }
+    virtual void* Reallocate(void* data, size_t old_size, size_t size) {
+        return static_cast<void*>(
+                   UncheckedRealloc<char>(static_cast<char*>(data), size));
+    }
+    virtual void RegisterPointer(void* data, size_t size) {}
+    virtual void UnregisterPointer(void* data, size_t size) {}
 
-  NodeArrayBufferAllocator* GetImpl() final { return this; }
+    NodeArrayBufferAllocator* GetImpl() final {
+        return this;
+    }
 
- private:
-  uint32_t zero_fill_field_ = 1;  // Boolean but exposed as uint32 to JS land.
+private:
+    uint32_t zero_fill_field_ = 1;  // Boolean but exposed as uint32 to JS land.
 };
 
 class DebuggingArrayBufferAllocator final : public NodeArrayBufferAllocator {
- public:
-  ~DebuggingArrayBufferAllocator() override;
-  void* Allocate(size_t size) override;
-  void* AllocateUninitialized(size_t size) override;
-  void Free(void* data, size_t size) override;
-  void* Reallocate(void* data, size_t old_size, size_t size) override;
-  void RegisterPointer(void* data, size_t size) override;
-  void UnregisterPointer(void* data, size_t size) override;
+public:
+    ~DebuggingArrayBufferAllocator() override;
+    void* Allocate(size_t size) override;
+    void* AllocateUninitialized(size_t size) override;
+    void Free(void* data, size_t size) override;
+    void* Reallocate(void* data, size_t old_size, size_t size) override;
+    void RegisterPointer(void* data, size_t size) override;
+    void UnregisterPointer(void* data, size_t size) override;
 
- private:
-  void RegisterPointerInternal(void* data, size_t size);
-  void UnregisterPointerInternal(void* data, size_t size);
-  Mutex mutex_;
-  std::unordered_map<void*, size_t> allocations_;
+private:
+    void RegisterPointerInternal(void* data, size_t size);
+    void UnregisterPointerInternal(void* data, size_t size);
+    Mutex mutex_;
+    std::unordered_map<void*, size_t> allocations_;
 };
 
 namespace Buffer {
@@ -170,22 +178,22 @@ v8::MaybeLocal<v8::Object> New(Environment* env,
 template <typename T>
 static v8::MaybeLocal<v8::Object> New(Environment* env,
                                       MaybeStackBuffer<T>* buf) {
-  v8::MaybeLocal<v8::Object> ret;
-  char* src = reinterpret_cast<char*>(buf->out());
-  const size_t len_in_bytes = buf->length() * sizeof(buf->out()[0]);
+    v8::MaybeLocal<v8::Object> ret;
+    char* src = reinterpret_cast<char*>(buf->out());
+    const size_t len_in_bytes = buf->length() * sizeof(buf->out()[0]);
 
-  if (buf->IsAllocated())
-    ret = New(env, src, len_in_bytes, true);
-  else if (!buf->IsInvalidated())
-    ret = Copy(env, src, len_in_bytes);
+    if (buf->IsAllocated())
+        ret = New(env, src, len_in_bytes, true);
+    else if (!buf->IsInvalidated())
+        ret = Copy(env, src, len_in_bytes);
 
-  if (ret.IsEmpty())
+    if (ret.IsEmpty())
+        return ret;
+
+    if (buf->IsAllocated())
+        buf->Release();
+
     return ret;
-
-  if (buf->IsAllocated())
-    buf->Release();
-
-  return ret;
 }
 }  // namespace Buffer
 
@@ -198,61 +206,65 @@ v8::MaybeLocal<v8::Value> InternalMakeCallback(
     async_context asyncContext);
 
 class InternalCallbackScope {
- public:
-  // Tell the constructor whether its `object` parameter may be empty or not.
-  enum ResourceExpectation { kRequireResource, kAllowEmptyResource };
-  InternalCallbackScope(Environment* env,
-                        v8::Local<v8::Object> object,
-                        const async_context& asyncContext,
-                        ResourceExpectation expect = kRequireResource);
-  // Utility that can be used by AsyncWrap classes.
-  explicit InternalCallbackScope(AsyncWrap* async_wrap);
-  ~InternalCallbackScope();
-  void Close();
+public:
+    // Tell the constructor whether its `object` parameter may be empty or not.
+    enum ResourceExpectation { kRequireResource, kAllowEmptyResource };
+    InternalCallbackScope(Environment* env,
+                          v8::Local<v8::Object> object,
+                          const async_context& asyncContext,
+                          ResourceExpectation expect = kRequireResource);
+    // Utility that can be used by AsyncWrap classes.
+    explicit InternalCallbackScope(AsyncWrap* async_wrap);
+    ~InternalCallbackScope();
+    void Close();
 
-  inline bool Failed() const { return failed_; }
-  inline void MarkAsFailed() { failed_ = true; }
+    inline bool Failed() const {
+        return failed_;
+    }
+    inline void MarkAsFailed() {
+        failed_ = true;
+    }
 
- private:
-  Environment* env_;
-  async_context async_context_;
-  v8::Local<v8::Object> object_;
-  AsyncCallbackScope callback_scope_;
-  bool failed_ = false;
-  bool pushed_ids_ = false;
-  bool closed_ = false;
+private:
+    Environment* env_;
+    async_context async_context_;
+    v8::Local<v8::Object> object_;
+    AsyncCallbackScope callback_scope_;
+    bool failed_ = false;
+    bool pushed_ids_ = false;
+    bool closed_ = false;
 };
 
 class DebugSealHandleScope {
- public:
-  explicit inline DebugSealHandleScope(v8::Isolate* isolate)
+public:
+    explicit inline DebugSealHandleScope(v8::Isolate* isolate)
 #ifdef DEBUG
-    : actual_scope_(isolate)
+        : actual_scope_(isolate)
 #endif
-  {}
+    {}
 
- private:
+private:
 #ifdef DEBUG
-  v8::SealHandleScope actual_scope_;
+    v8::SealHandleScope actual_scope_;
 #endif
 };
 
 class ThreadPoolWork {
- public:
-  explicit inline ThreadPoolWork(Environment* env) : env_(env) {
-    CHECK_NOT_NULL(env);
-  }
-  inline virtual ~ThreadPoolWork() = default;
+public:
+    explicit inline ThreadPoolWork(Environment* env) : env_(env) {
+        CHECK_NOT_NULL(env);
+    }
+    inline virtual ~ThreadPoolWork() = default;
 
-  inline void ScheduleWork();
-  inline int CancelWork();
+    inline void ScheduleWork();
+    inline int CancelWork();
 
-  virtual void DoThreadPoolWork() = 0;
-  virtual void AfterThreadPoolWork(int status) = 0;
+    virtual void DoThreadPoolWork() = 0;
+    virtual void AfterThreadPoolWork(int status) = 0;
 
- private:
-  Environment* env_;
-  uv_work_t work_req_;
+private:
+    Environment* env_;
+    uv_work_t work_req_;
 };
 
 #define TRACING_CATEGORY_NODE "node"
@@ -279,7 +291,7 @@ v8::Isolate* NewIsolate(v8::Isolate::CreateParams* params,
                         uv_loop_t* event_loop,
                         MultiIsolatePlatform* platform);
 v8::MaybeLocal<v8::Value> StartExecution(Environment* env,
-                                         const char* main_script_id);
+        const char* main_script_id);
 v8::MaybeLocal<v8::Object> GetPerContextExports(v8::Local<v8::Context> context);
 v8::MaybeLocal<v8::Value> ExecuteBootstrapper(
     Environment* env,
@@ -289,10 +301,10 @@ v8::MaybeLocal<v8::Value> ExecuteBootstrapper(
 void MarkBootstrapComplete(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 struct InitializationResult {
-  int exit_code = 0;
-  std::vector<std::string> args;
-  std::vector<std::string> exec_args;
-  bool early_return = false;
+    int exit_code = 0;
+    std::vector<std::string> args;
+    std::vector<std::string> exec_args;
+    bool early_return = false;
 };
 InitializationResult InitializeOncePerProcess(int argc, char** argv);
 void TearDownOncePerProcess();
@@ -320,43 +332,43 @@ int WriteFileSync(v8::Isolate* isolate,
                   v8::Local<v8::String> string);
 
 class DiagnosticFilename {
- public:
-  static void LocalTime(TIME_TYPE* tm_struct);
+public:
+    static void LocalTime(TIME_TYPE* tm_struct);
 
-  inline DiagnosticFilename(Environment* env,
-                            const char* prefix,
-                            const char* ext);
+    inline DiagnosticFilename(Environment* env,
+                              const char* prefix,
+                              const char* ext);
 
-  inline DiagnosticFilename(uint64_t thread_id,
-                            const char* prefix,
-                            const char* ext);
+    inline DiagnosticFilename(uint64_t thread_id,
+                              const char* prefix,
+                              const char* ext);
 
-  inline const char* operator*() const;
+    inline const char* operator*() const;
 
- private:
-  static std::string MakeFilename(
-      uint64_t thread_id,
-      const char* prefix,
-      const char* ext);
+private:
+    static std::string MakeFilename(
+        uint64_t thread_id,
+        const char* prefix,
+        const char* ext);
 
-  std::string filename_;
+    std::string filename_;
 };
 
 class TraceEventScope {
- public:
-  TraceEventScope(const char* category,
-                  const char* name,
-                  void* id) : category_(category), name_(name), id_(id) {
-    TRACE_EVENT_NESTABLE_ASYNC_BEGIN0(category_, name_, id_);
-  }
-  ~TraceEventScope() {
-    TRACE_EVENT_NESTABLE_ASYNC_END0(category_, name_, id_);
-  }
+public:
+    TraceEventScope(const char* category,
+                    const char* name,
+                    void* id) : category_(category), name_(name), id_(id) {
+        TRACE_EVENT_NESTABLE_ASYNC_BEGIN0(category_, name_, id_);
+    }
+    ~TraceEventScope() {
+        TRACE_EVENT_NESTABLE_ASYNC_END0(category_, name_, id_);
+    }
 
- private:
-  const char* category_;
-  const char* name_;
-  void* id_;
+private:
+    const char* category_;
+    const char* name_;
+    void* id_;
 };
 
 }  // namespace node
