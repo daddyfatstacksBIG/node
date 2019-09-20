@@ -1,19 +1,29 @@
-'use strict';
-const common = require('../common');
-const assert = require('assert');
+"use strict";
+const common = require("../common");
+const assert = require("assert");
 
-const expected_keys = ['ares', 'brotli', 'modules', 'node',
-                       'uv', 'v8', 'zlib', 'nghttp2', 'napi', 'llhttp'];
+const expected_keys = [
+  "ares",
+  "brotli",
+  "modules",
+  "node",
+  "uv",
+  "v8",
+  "zlib",
+  "nghttp2",
+  "napi",
+  "llhttp"
+];
 
 if (common.hasCrypto) {
-  expected_keys.push('openssl');
+  expected_keys.push("openssl");
 }
 
 if (common.hasIntl) {
-  expected_keys.push('icu');
-  expected_keys.push('cldr');
-  expected_keys.push('tz');
-  expected_keys.push('unicode');
+  expected_keys.push("icu");
+  expected_keys.push("cldr");
+  expected_keys.push("tz");
+  expected_keys.push("unicode");
 }
 
 expected_keys.sort();
@@ -30,8 +40,11 @@ assert(commonTemplate.test(process.versions.node));
 assert(commonTemplate.test(process.versions.uv));
 assert(commonTemplate.test(process.versions.zlib));
 
-assert(/^\d+\.\d+\.\d+(?:\.\d+)?-node\.\d+(?: \(candidate\))?$/
-  .test(process.versions.v8));
+assert(
+  /^\d+\.\d+\.\d+(?:\.\d+)?-node\.\d+(?: \(candidate\))?$/.test(
+    process.versions.v8
+  )
+);
 assert(/^\d+$/.test(process.versions.modules));
 
 if (common.hasCrypto) {
@@ -44,5 +57,7 @@ for (let i = 0; i < expected_keys.length; i++) {
   assert.strictEqual(descriptor.writable, false);
 }
 
-assert.strictEqual(process.config.variables.napi_build_version,
-                   process.versions.napi);
+assert.strictEqual(
+  process.config.variables.napi_build_version,
+  process.versions.napi
+);

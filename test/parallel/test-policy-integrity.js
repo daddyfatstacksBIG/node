@@ -1,39 +1,39 @@
-'use strict';
+"use strict";
 
-const common = require('../common');
-if (!common.hasCrypto)
-  common.skip('missing crypto');
+const common = require("../common");
+if (!common.hasCrypto) common.skip("missing crypto");
 
-const tmpdir = require('../common/tmpdir');
-const assert = require('assert');
-const { spawnSync } = require('child_process');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
-const { pathToFileURL } = require('url');
+const tmpdir = require("../common/tmpdir");
+const assert = require("assert");
+const { spawnSync } = require("child_process");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+const { pathToFileURL } = require("url");
 
 tmpdir.refresh();
 
 function hash(algo, body) {
   const h = crypto.createHash(algo);
   h.update(body);
-  return h.digest('base64');
+  return h.digest("base64");
 }
 
-const policyFilepath = path.join(tmpdir.path, 'policy');
+const policyFilepath = path.join(tmpdir.path, "policy");
 
-const packageFilepath = path.join(tmpdir.path, 'package.json');
+const packageFilepath = path.join(tmpdir.path, "package.json");
 const packageURL = pathToFileURL(packageFilepath);
 const packageBody = '{"main": "dep.js"}';
-const policyToPackageRelativeURLString = `./${
-  path.relative(path.dirname(policyFilepath), packageFilepath)
-}`;
+const policyToPackageRelativeURLString = `./${path.relative(
+  path.dirname(policyFilepath),
+  packageFilepath
+)}`;
 
-const parentFilepath = path.join(tmpdir.path, 'parent.js');
+const parentFilepath = path.join(tmpdir.path, "parent.js");
 const parentURL = pathToFileURL(parentFilepath);
-const parentBody = 'require(\'./dep.js\')';
+const parentBody = "require('./dep.js')";
 
-const workerSpawningFilepath = path.join(tmpdir.path, 'worker_spawner.js');
+const workerSpawningFilepath = path.join(tmpdir.path, "worker_spawner.js");
 const workerSpawningURL = pathToFileURL(workerSpawningFilepath);
 const workerSpawningBody = `
 const { Worker } = require('worker_threads');
@@ -44,19 +44,20 @@ const w = new Worker(${JSON.stringify(parentFilepath)});
 w.on('exit', process.exit);
 `;
 
-const depFilepath = path.join(tmpdir.path, 'dep.js');
+const depFilepath = path.join(tmpdir.path, "dep.js");
 const depURL = pathToFileURL(depFilepath);
-const depBody = '';
-const policyToDepRelativeURLString = `./${
-  path.relative(path.dirname(policyFilepath), depFilepath)
-}`;
+const depBody = "";
+const policyToDepRelativeURLString = `./${path.relative(
+  path.dirname(policyFilepath),
+  depFilepath
+)}`;
 
 fs.writeFileSync(parentFilepath, parentBody);
 fs.writeFileSync(depFilepath, depBody);
 
 const tmpdirURL = pathToFileURL(tmpdir.path);
-if (!tmpdirURL.pathname.endsWith('/')) {
-  tmpdirURL.pathname += '/';
+if (!tmpdirURL.pathname.endsWith("/")) {
+  tmpdirURL.pathname += "/";
 }
 function test({
   shouldFail = false,
@@ -71,15 +72,16 @@ function test({
   };
   for (const [url, { body, match }] of Object.entries(resources)) {
     manifest.resources[url] = {
-      integrity: `sha256-${hash('sha256', match ? body : body + '\n')}`,
+      integrity: `sha256-${hash("sha256", match ? body : body + "\n")}`,
       dependencies: true
     };
     fs.writeFileSync(new URL(url, tmpdirURL.href), body);
   }
   fs.writeFileSync(policyFilepath, JSON.stringify(manifest, null, 2));
   const { status } = spawnSync(process.execPath, [
-    '--experimental-policy', policyFilepath,
-    ...preload.map((m) => ['-r', m]).flat(),
+    "--experimental-policy",
+    policyFilepath,
+    ...preload.map(m => ["-r", m]).flat(),
     entry
   ]);
   if (shouldFail) {
@@ -90,56 +92,64 @@ function test({
 }
 
 {
-  const { status } = spawnSync(process.execPath, [
-    '--experimental-policy', policyFilepath,
-    '--experimental-policy', policyFilepath
-  ], {
-    stdio: 'pipe'
-  });
-  assert.notStrictEqual(status, 0, 'Should not allow multiple policies');
+  const { status } = spawnSync(
+    process.execPath,
+    [
+      "--experimental-policy",
+      policyFilepath,
+      "--experimental-policy",
+      policyFilepath
+    ],
+    {
+      stdio: "pipe"
+    }
+  );
+  assert.notStrictEqual(status, 0, "Should not allow multiple policies");
 }
 {
-  const enoentFilepath = path.join(tmpdir.path, 'enoent');
-  try { fs.unlinkSync(enoentFilepath); } catch {}
-  const { status } = spawnSync(process.execPath, [
-    '--experimental-policy', enoentFilepath, '-e', ''
-  ], {
-    stdio: 'pipe'
-  });
-  assert.notStrictEqual(status, 0, 'Should not allow missing policies');
+  const enoentFilepath = path.join(tmpdir.path, "enoent");
+  try {
+    fs.unlinkSync(enoentFilepath);
+  } catch {}
+  const { status } = spawnSync(
+    process.execPath,
+    ["--experimental-policy", enoentFilepath, "-e", ""],
+    {
+      stdio: "pipe"
+    }
+  );
+  assert.notStrictEqual(status, 0, "Should not allow missing policies");
 }
 
 test({
   shouldFail: true,
   entry: parentFilepath,
-  resources: {
-  }
+  resources: {}
 });
 test({
   shouldFail: false,
   entry: parentFilepath,
-  onerror: 'log',
+  onerror: "log"
 });
 test({
   shouldFail: true,
   entry: parentFilepath,
-  onerror: 'exit',
+  onerror: "exit"
 });
 test({
   shouldFail: true,
   entry: parentFilepath,
-  onerror: 'throw',
+  onerror: "throw"
 });
 test({
   shouldFail: true,
   entry: parentFilepath,
-  onerror: 'unknown-onerror-value',
+  onerror: "unknown-onerror-value"
 });
 test({
   shouldFail: true,
   entry: path.dirname(packageFilepath),
-  resources: {
-  }
+  resources: {}
 });
 test({
   shouldFail: true,
@@ -147,22 +157,22 @@ test({
   resources: {
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
 test({
   shouldFail: false,
   entry: path.dirname(packageFilepath),
-  onerror: 'log',
+  onerror: "log",
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: false,
+      match: false
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -172,11 +182,11 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: false,
+      match: false
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -186,11 +196,11 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: false,
+      match: false
     }
   }
 });
@@ -200,11 +210,11 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -214,15 +224,15 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -233,15 +243,15 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -251,11 +261,11 @@ test({
   resources: {
     [parentURL]: {
       body: parentBody,
-      match: false,
+      match: false
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -265,11 +275,11 @@ test({
   resources: {
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: false,
+      match: false
     }
   }
 });
@@ -279,7 +289,7 @@ test({
   resources: {
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -289,11 +299,11 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -303,11 +313,11 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [policyToDepRelativeURLString]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -317,7 +327,7 @@ test({
   resources: {
     [policyToDepRelativeURLString]: {
       body: depBody,
-      match: false,
+      match: false
     }
   }
 });
@@ -327,15 +337,15 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [policyToDepRelativeURLString]: {
       body: depBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -345,15 +355,15 @@ test({
   resources: {
     [policyToPackageRelativeURLString]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: false,
+      match: false
     }
   }
 });
@@ -363,8 +373,8 @@ test({
   resources: {
     [workerSpawningURL]: {
       body: workerSpawningBody,
-      match: true,
-    },
+      match: true
+    }
   }
 });
 test({
@@ -373,19 +383,19 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [workerSpawningURL]: {
       body: workerSpawningBody,
-      match: true,
+      match: true
     },
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
@@ -396,19 +406,19 @@ test({
   resources: {
     [packageURL]: {
       body: packageBody,
-      match: true,
+      match: true
     },
     [workerSpawningURL]: {
       body: workerSpawningBody,
-      match: true,
+      match: true
     },
     [parentURL]: {
       body: parentBody,
-      match: true,
+      match: true
     },
     [depURL]: {
       body: depBody,
-      match: true,
+      match: true
     }
   }
 });
