@@ -31,7 +31,6 @@ namespace node {
   V(nghttp2)                                                                   \
   V(napi)                                                                      \
   V(llhttp)                                                                    \
-  V(http_parser)                                                               \
 
 #if HAVE_OPENSSL
 #define NODE_VERSIONS_KEY_CRYPTO(V) V(openssl)
@@ -55,55 +54,53 @@ namespace node {
   NODE_VERSIONS_KEY_INTL(V)
 
 class Metadata {
- public:
-  Metadata();
-  Metadata(Metadata&) = delete;
-  Metadata(Metadata&&) = delete;
-  Metadata operator=(Metadata&) = delete;
-  Metadata operator=(Metadata&&) = delete;
+public:
+    Metadata();
+    Metadata(Metadata&) = delete;
+    Metadata(Metadata&&) = delete;
+    Metadata operator=(Metadata&) = delete;
+    Metadata operator=(Metadata&&) = delete;
 
-  struct Versions {
-    Versions();
+    struct Versions {
+        Versions();
 
 #ifdef NODE_HAVE_I18N_SUPPORT
-    // Must be called on the main thread after
-    // i18n::InitializeICUDirectory()
-    void InitializeIntlVersions();
+        // Must be called on the main thread after
+        // i18n::InitializeICUDirectory()
+        void InitializeIntlVersions();
 #endif  // NODE_HAVE_I18N_SUPPORT
 
 #define V(key) std::string key;
-    NODE_VERSIONS_KEYS(V)
+        NODE_VERSIONS_KEYS(V)
 #undef V
-  };
+    };
 
-  struct Release {
-    Release();
+    struct Release {
+        Release();
 
-    std::string name;
+        std::string name;
 #if NODE_VERSION_IS_LTS
-    std::string lts;
+        std::string lts;
 #endif  // NODE_VERSION_IS_LTS
 
 #ifdef NODE_HAS_RELEASE_URLS
-    std::string source_url;
-    std::string headers_url;
+        std::string source_url;
+        std::string headers_url;
 #ifdef _WIN32
-    std::string lib_url;
+        std::string lib_url;
 #endif  // _WIN32
 #endif  // NODE_HAS_RELEASE_URLS
-  };
+    };
 
-  Versions versions;
-  const Release release;
-  const std::string arch;
-  const std::string platform;
+    Versions versions;
+    const Release release;
+    const std::string arch;
+    const std::string platform;
 };
 
 // Per-process global
 namespace per_process {
 extern Metadata metadata;
-extern const char* const llhttp_version;
-extern const char* const http_parser_version;
 }
 
 }  // namespace node
