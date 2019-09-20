@@ -40,14 +40,10 @@ def read_config():
     # pylint: disable=W0703
     def json_to_object(data, output_base, config_base):
         def json_object_hook(object_dict):
-            items = [
-                (k, os.path.join(config_base, v) if k == "path" else v)
-                for (k, v) in object_dict.items()
-            ]
-            items = [
-                (k, os.path.join(output_base, v) if k == "output" else v)
-                for (k, v) in items
-            ]
+            items = [(k, os.path.join(config_base, v) if k == "path" else v)
+                     for (k, v) in object_dict.items()]
+            items = [(k, os.path.join(output_base, v) if k == "output" else v)
+                     for (k, v) in items]
             keys, values = list(zip(*items))
             # 'async' is a keyword since Python 3.7.
             # Avoid namedtuple(rename=True) for compatibility with Python 2.X.
@@ -61,11 +57,12 @@ def read_config():
         values = [getattr(config_tuple, k) for k in keys]
         for i in range(len(keys)):
             if hasattr(values[i], "_fields"):
-                values[i] = init_defaults(values[i], path + "." + keys[i], defaults)
+                values[i] = init_defaults(values[i], path + "." + keys[i],
+                                          defaults)
         for optional in defaults:
             if optional.find(path + ".") != 0:
                 continue
-            optional_key = optional[len(path) + 1 :]
+            optional_key = optional[len(path) + 1:]
             if optional_key.find(".") == -1 and optional_key not in keys:
                 keys.append(optional_key)
                 values.append(defaults[optional])
@@ -73,18 +70,21 @@ def read_config():
 
     try:
         cmdline_parser = argparse.ArgumentParser()
-        cmdline_parser.add_argument("--output_base", type=unicode, required=True)
+        cmdline_parser.add_argument("--output_base",
+                                    type=unicode,
+                                    required=True)
         cmdline_parser.add_argument("--jinja_dir", type=unicode, required=True)
         cmdline_parser.add_argument("--config", type=unicode, required=True)
-        cmdline_parser.add_argument("--config_value", default=[], action="append")
+        cmdline_parser.add_argument("--config_value",
+                                    default=[],
+                                    action="append")
         cmdline_parser.add_argument(
             "--inspector_protocol_dir",
             type=unicode,
             required=True,
             help=(
                 "directory with code_generator.py and C++ encoding / binding "
-                "libraries, relative to the root of the source tree."
-            ),
+                "libraries, relative to the root of the source tree."),
         )
         arg_options = cmdline_parser.parse_args()
         jinja_dir = arg_options.jinja_dir
@@ -96,51 +96,72 @@ def read_config():
     except Exception:
         # Work with python 2 and 3 http://docs.python.org/py3k/howto/pyporting.html
         exc = sys.exc_info()[1]
-        sys.stderr.write("Failed to parse command-line arguments: %s\n\n" % exc)
+        sys.stderr.write("Failed to parse command-line arguments: %s\n\n" %
+                         exc)
         exit(1)
 
     try:
         config_json_file = open(config_file, "r")
         config_json_string = config_json_file.read()
-        config_partial = json_to_object(config_json_string, output_base, config_base)
+        config_partial = json_to_object(config_json_string, output_base,
+                                        config_base)
         config_json_file.close()
         defaults = {
-            ".use_snake_file_names": False,
-            ".use_title_case_methods": False,
-            ".imported": False,
-            ".imported.export_macro": "",
-            ".imported.export_header": False,
-            ".imported.header": False,
-            ".imported.package": False,
-            ".imported.options": False,
-            ".protocol.export_macro": "",
-            ".protocol.export_header": False,
-            ".protocol.options": False,
-            ".protocol.file_name_prefix": "",
-            ".exported": False,
-            ".exported.export_macro": "",
-            ".exported.export_header": False,
-            ".lib": False,
-            ".lib.export_macro": "",
-            ".lib.export_header": False,
+            ".use_snake_file_names":
+            False,
+            ".use_title_case_methods":
+            False,
+            ".imported":
+            False,
+            ".imported.export_macro":
+            "",
+            ".imported.export_header":
+            False,
+            ".imported.header":
+            False,
+            ".imported.package":
+            False,
+            ".imported.options":
+            False,
+            ".protocol.export_macro":
+            "",
+            ".protocol.export_header":
+            False,
+            ".protocol.options":
+            False,
+            ".protocol.file_name_prefix":
+            "",
+            ".exported":
+            False,
+            ".exported.export_macro":
+            "",
+            ".exported.export_header":
+            False,
+            ".lib":
+            False,
+            ".lib.export_macro":
+            "",
+            ".lib.export_header":
+            False,
             # The encoding lib consists of encoding/encoding.h and
             # encoding/encoding.cc in its subdirectory, which binaries
             # must link / depend on.
-            ".encoding_lib.header": os.path.join(
-                inspector_protocol_dir, "encoding/encoding.h"
-            ),
-            ".encoding_lib.namespace": "",
+            ".encoding_lib.header":
+            os.path.join(inspector_protocol_dir, "encoding/encoding.h"),
+            ".encoding_lib.namespace":
+            "",
             # Ditto for bindings, see bindings/bindings.h.
-            ".bindings_lib.header": os.path.join(
-                inspector_protocol_dir, "bindings/bindings.h"
-            ),
-            ".bindings_lib.namespace": "",
+            ".bindings_lib.header":
+            os.path.join(inspector_protocol_dir, "bindings/bindings.h"),
+            ".bindings_lib.namespace":
+            "",
         }
         for key_value in config_values:
             parts = key_value.split("=")
             if len(parts) == 2:
                 defaults["." + parts[0]] = parts[1]
-        return (jinja_dir, config_file, init_defaults(config_partial, "", defaults))
+        return (jinja_dir, config_file,
+                init_defaults(config_partial, "", defaults))
     except Exception:
         # Work with python 2 and 3 http://docs.python.org/py3k/howto/pyporting.html
         exc = sys.exc_info()[1]
@@ -191,7 +212,8 @@ def format_include(config, header, file_name=None):
 
 
 def format_domain_include(config, header, file_name):
-    return format_include(config, header, config.protocol.file_name_prefix + file_name)
+    return format_include(config, header,
+                          config.protocol.file_name_prefix + file_name)
 
 
 def to_file_name(config, file_name):
@@ -217,13 +239,14 @@ def initialize_jinja_env(jinja_dir, cache_dir, config):
         lstrip_blocks=True,  # so can indent control flow tags
         trim_blocks=True,
     )
-    jinja_env.filters.update(
-        {
-            "to_title_case": to_title_case,
-            "dash_to_camelcase": dash_to_camelcase,
-            "to_method_case": functools.partial(to_method_case, config),
-        }
-    )
+    jinja_env.filters.update({
+        "to_title_case":
+        to_title_case,
+        "dash_to_camelcase":
+        dash_to_camelcase,
+        "to_method_case":
+        functools.partial(to_method_case, config),
+    })
     jinja_env.add_extension("jinja2.ext.loopcontrols")
     return jinja_env
 
@@ -231,35 +254,51 @@ def initialize_jinja_env(jinja_dir, cache_dir, config):
 def create_imported_type_definition(domain_name, type, imported_namespace):
     # pylint: disable=W0622
     return {
-        "return_type": "std::unique_ptr<%s::%s::API::%s>"
-        % (imported_namespace, domain_name, type["id"]),
-        "pass_type": "std::unique_ptr<%s::%s::API::%s>"
-        % (imported_namespace, domain_name, type["id"]),
-        "to_raw_type": "%s.get()",
-        "to_pass_type": "std::move(%s)",
-        "to_rvalue": "std::move(%s)",
-        "type": "std::unique_ptr<%s::%s::API::%s>"
-        % (imported_namespace, domain_name, type["id"]),
-        "raw_type": "%s::%s::API::%s" % (imported_namespace, domain_name, type["id"]),
-        "raw_pass_type": "%s::%s::API::%s*"
-        % (imported_namespace, domain_name, type["id"]),
-        "raw_return_type": "%s::%s::API::%s*"
-        % (imported_namespace, domain_name, type["id"]),
+        "return_type":
+        "std::unique_ptr<%s::%s::API::%s>" %
+        (imported_namespace, domain_name, type["id"]),
+        "pass_type":
+        "std::unique_ptr<%s::%s::API::%s>" %
+        (imported_namespace, domain_name, type["id"]),
+        "to_raw_type":
+        "%s.get()",
+        "to_pass_type":
+        "std::move(%s)",
+        "to_rvalue":
+        "std::move(%s)",
+        "type":
+        "std::unique_ptr<%s::%s::API::%s>" %
+        (imported_namespace, domain_name, type["id"]),
+        "raw_type":
+        "%s::%s::API::%s" % (imported_namespace, domain_name, type["id"]),
+        "raw_pass_type":
+        "%s::%s::API::%s*" % (imported_namespace, domain_name, type["id"]),
+        "raw_return_type":
+        "%s::%s::API::%s*" % (imported_namespace, domain_name, type["id"]),
     }
 
 
 def create_user_type_definition(domain_name, type):
     # pylint: disable=W0622
     return {
-        "return_type": "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
-        "pass_type": "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
-        "to_raw_type": "%s.get()",
-        "to_pass_type": "std::move(%s)",
-        "to_rvalue": "std::move(%s)",
-        "type": "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
-        "raw_type": "protocol::%s::%s" % (domain_name, type["id"]),
-        "raw_pass_type": "protocol::%s::%s*" % (domain_name, type["id"]),
-        "raw_return_type": "protocol::%s::%s*" % (domain_name, type["id"]),
+        "return_type":
+        "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
+        "pass_type":
+        "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
+        "to_raw_type":
+        "%s.get()",
+        "to_pass_type":
+        "std::move(%s)",
+        "to_rvalue":
+        "std::move(%s)",
+        "type":
+        "std::unique_ptr<protocol::%s::%s>" % (domain_name, type["id"]),
+        "raw_type":
+        "protocol::%s::%s" % (domain_name, type["id"]),
+        "raw_pass_type":
+        "protocol::%s::%s*" % (domain_name, type["id"]),
+        "raw_return_type":
+        "protocol::%s::%s*" % (domain_name, type["id"]),
     }
 
 
@@ -349,7 +388,8 @@ def create_primitive_type_definition(type):
 def wrap_array_definition(type):
     # pylint: disable=W0622
     return {
-        "return_type": "std::unique_ptr<protocol::Array<%s>>" % type["raw_type"],
+        "return_type":
+        "std::unique_ptr<protocol::Array<%s>>" % type["raw_type"],
         "pass_type": "std::unique_ptr<protocol::Array<%s>>" % type["raw_type"],
         "to_raw_type": "%s.get()",
         "to_pass_type": "std::move(%s)",
@@ -371,15 +411,17 @@ class Protocol(object):
         self.generate_domains = self.read_protocol_file(config.protocol.path)
 
         if config.protocol.options:
-            self.generate_domains = [rule.domain for rule in config.protocol.options]
+            self.generate_domains = [
+                rule.domain for rule in config.protocol.options
+            ]
             self.exported_domains = [
-                rule.domain
-                for rule in config.protocol.options
+                rule.domain for rule in config.protocol.options
                 if hasattr(rule, "exported")
             ]
 
         if config.imported:
-            self.imported_domains = self.read_protocol_file(config.imported.path)
+            self.imported_domains = self.read_protocol_file(
+                config.imported.path)
             if config.imported.options:
                 self.imported_domains = [
                     rule.domain for rule in config.imported.options
@@ -452,9 +494,8 @@ class Protocol(object):
                     if self.generate_event(domain_name, event["name"]):
                         all_refs |= self.all_references(event)
                         all_refs.add(
-                            "%s.%sNotification"
-                            % (domain_name, to_title_case(event["name"]))
-                        )
+                            "%s.%sNotification" %
+                            (domain_name, to_title_case(event["name"])))
 
         dependencies = self.generate_type_dependencies()
         queue = set(all_refs)
@@ -467,13 +508,15 @@ class Protocol(object):
 
     def generate_type_dependencies(self):
         dependencies = dict()
-        domains_with_types = (x for x in self.json_api["domains"] if "types" in x)
+        domains_with_types = (x for x in self.json_api["domains"]
+                              if "types" in x)
         for domain in domains_with_types:
             domain_name = domain["domain"]
             for type in domain["types"]:
                 related_types = self.all_references(type)
                 if len(related_types):
-                    dependencies[domain_name + "." + type["id"]] = related_types
+                    dependencies[domain_name + "." +
+                                 type["id"]] = related_types
         return dependencies
 
     def create_notification_types(self):
@@ -481,11 +524,14 @@ class Protocol(object):
             if "events" in domain:
                 for event in domain["events"]:
                     event_type = dict()
-                    event_type["description"] = "Wrapper for notification params"
+                    event_type[
+                        "description"] = "Wrapper for notification params"
                     event_type["type"] = "object"
-                    event_type["id"] = to_title_case(event["name"]) + "Notification"
+                    event_type["id"] = to_title_case(
+                        event["name"]) + "Notification"
                     if "parameters" in event:
-                        event_type["properties"] = copy.deepcopy(event["parameters"])
+                        event_type["properties"] = copy.deepcopy(
+                            event["parameters"])
                     if "types" not in domain:
                         domain["types"] = list()
                     domain["types"].append(event_type)
@@ -495,46 +541,48 @@ class Protocol(object):
         if self.config.imported:
             imported_namespace = "::".join(self.config.imported.namespace)
         self.type_definitions = {}
-        self.type_definitions["number"] = create_primitive_type_definition("number")
-        self.type_definitions["integer"] = create_primitive_type_definition("integer")
-        self.type_definitions["boolean"] = create_primitive_type_definition("boolean")
+        self.type_definitions["number"] = create_primitive_type_definition(
+            "number")
+        self.type_definitions["integer"] = create_primitive_type_definition(
+            "integer")
+        self.type_definitions["boolean"] = create_primitive_type_definition(
+            "boolean")
         self.type_definitions["object"] = create_object_type_definition()
         self.type_definitions["any"] = create_any_type_definition()
         self.type_definitions["binary"] = create_binary_type_definition()
         for domain in self.json_api["domains"]:
-            self.type_definitions[
-                domain["domain"] + ".string"
-            ] = create_string_type_definition()
-            self.type_definitions[
-                domain["domain"] + ".binary"
-            ] = create_binary_type_definition()
+            self.type_definitions[domain["domain"] +
+                                  ".string"] = create_string_type_definition()
+            self.type_definitions[domain["domain"] +
+                                  ".binary"] = create_binary_type_definition()
             if not ("types" in domain):
                 continue
             for type in domain["types"]:
                 type_name = domain["domain"] + "." + type["id"]
-                if (
-                    type["type"] == "object"
-                    and domain["domain"] in self.imported_domains
-                ):
-                    self.type_definitions[type_name] = create_imported_type_definition(
-                        domain["domain"], type, imported_namespace
-                    )
+                if (type["type"] == "object"
+                        and domain["domain"] in self.imported_domains):
+                    self.type_definitions[
+                        type_name] = create_imported_type_definition(
+                            domain["domain"], type, imported_namespace)
                 elif type["type"] == "object":
-                    self.type_definitions[type_name] = create_user_type_definition(
-                        domain["domain"], type
-                    )
+                    self.type_definitions[
+                        type_name] = create_user_type_definition(
+                            domain["domain"], type)
                 elif type["type"] == "array":
                     self.type_definitions[type_name] = self.resolve_type(type)
                 elif type["type"] == domain["domain"] + ".string":
-                    self.type_definitions[type_name] = create_string_type_definition()
+                    self.type_definitions[
+                        type_name] = create_string_type_definition()
                 elif type["type"] == domain["domain"] + ".binary":
-                    self.type_definitions[type_name] = create_binary_type_definition()
+                    self.type_definitions[
+                        type_name] = create_binary_type_definition()
                 else:
-                    self.type_definitions[type_name] = create_primitive_type_definition(
-                        type["type"]
-                    )
+                    self.type_definitions[
+                        type_name] = create_primitive_type_definition(
+                            type["type"])
 
-    def check_options(self, options, domain, name, include_attr, exclude_attr, default):
+    def check_options(self, options, domain, name, include_attr, exclude_attr,
+                      default):
         for rule in options:
             if rule.domain != domain:
                 continue
@@ -560,9 +608,8 @@ class Protocol(object):
     def generate_command(self, domain, command):
         if not self.config.protocol.options:
             return domain in self.generate_domains
-        return self.check_options(
-            self.config.protocol.options, domain, command, "include", "exclude", True
-        )
+        return self.check_options(self.config.protocol.options, domain,
+                                  command, "include", "exclude", True)
 
     def generate_event(self, domain, event):
         if not self.config.protocol.options:
@@ -582,25 +629,22 @@ class Protocol(object):
     def is_async_command(self, domain, command):
         if not self.config.protocol.options:
             return False
-        return self.check_options(
-            self.config.protocol.options, domain, command, "async_", None, False
-        )
+        return self.check_options(self.config.protocol.options, domain,
+                                  command, "async_", None, False)
 
     def is_exported(self, domain, name):
         if not self.config.protocol.options:
             return False
-        return self.check_options(
-            self.config.protocol.options, domain, name, "exported", None, False
-        )
+        return self.check_options(self.config.protocol.options, domain, name,
+                                  "exported", None, False)
 
     def is_imported(self, domain, name):
         if not self.config.imported:
             return False
         if not self.config.imported.options:
             return domain in self.imported_domains
-        return self.check_options(
-            self.config.imported.options, domain, name, "imported", None, False
-        )
+        return self.check_options(self.config.imported.options, domain, name,
+                                  "imported", None, False)
 
     def is_exported_domain(self, domain):
         return domain in self.exported_domains
@@ -610,8 +654,7 @@ class Protocol(object):
             return True
         for command in domain["commands"]:
             if command["name"] == "disable" and self.generate_command(
-                domain["domain"], "disable"
-            ):
+                    domain["domain"], "disable"):
                 return False
         return True
 
@@ -626,14 +669,14 @@ def main():
 
     if not config.exported and len(protocol.exported_domains):
         sys.stderr.write(
-            ("Domains [%s] are exported, but config is missing export " "entry\n\n")
-            % ", ".join(protocol.exported_domains)
-        )
+            ("Domains [%s] are exported, but config is missing export "
+             "entry\n\n") % ", ".join(protocol.exported_domains))
         exit(1)
 
     if not os.path.exists(config.protocol.output):
         os.mkdir(config.protocol.output)
-    if len(protocol.exported_domains) and not os.path.exists(config.exported.output):
+    if len(protocol.exported_domains) and not os.path.exists(
+            config.exported.output):
         os.mkdir(config.exported.output)
     jinja_env = initialize_jinja_env(jinja_dir, config.protocol.output, config)
 
@@ -660,37 +703,40 @@ def main():
         class_name = domain["domain"]
         file_name = config.protocol.file_name_prefix + class_name
         template_context = {
-            "protocol": protocol,
-            "config": config,
-            "domain": domain,
-            "join_arrays": join_arrays,
-            "format_include": functools.partial(format_include, config),
-            "format_domain_include": functools.partial(format_domain_include, config),
+            "protocol":
+            protocol,
+            "config":
+            config,
+            "domain":
+            domain,
+            "join_arrays":
+            join_arrays,
+            "format_include":
+            functools.partial(format_include, config),
+            "format_domain_include":
+            functools.partial(format_domain_include, config),
         }
 
         if domain["domain"] in protocol.generate_domains:
-            outputs[
-                os.path.join(
-                    config.protocol.output, to_file_name(config, file_name + ".h")
-                )
-            ] = h_template.render(template_context)
-            outputs[
-                os.path.join(
-                    config.protocol.output, to_file_name(config, file_name + ".cpp")
-                )
-            ] = cpp_template.render(template_context)
+            outputs[os.path.join(
+                config.protocol.output,
+                to_file_name(config, file_name +
+                             ".h"))] = h_template.render(template_context)
+            outputs[os.path.join(
+                config.protocol.output,
+                to_file_name(config, file_name +
+                             ".cpp"))] = cpp_template.render(template_context)
             if domain["domain"] in protocol.exported_domains:
-                outputs[
-                    os.path.join(
-                        config.exported.output, to_file_name(config, file_name + ".h")
-                    )
-                ] = exported_template.render(template_context)
+                outputs[os.path.join(
+                    config.exported.output,
+                    to_file_name(
+                        config, file_name +
+                        ".h"))] = exported_template.render(template_context)
         if domain["domain"] in protocol.imported_domains:
-            outputs[
-                os.path.join(
-                    config.protocol.output, to_file_name(config, file_name + ".h")
-                )
-            ] = imported_template.render(template_context)
+            outputs[os.path.join(
+                config.protocol.output, to_file_name(
+                    config, file_name +
+                    ".h"))] = imported_template.render(template_context)
 
     if config.lib:
         template_context = {
@@ -719,7 +765,9 @@ def main():
             "Parser_cpp.template",
         ]
 
-        forward_h_templates = ["Forward_h.template", "FrontendChannel_h.template"]
+        forward_h_templates = [
+            "Forward_h.template", "FrontendChannel_h.template"
+        ]
 
         base_string_adapter_h_templates = ["base_string_adapter_h.template"]
 
@@ -738,23 +786,23 @@ def main():
             forward_h_templates,
         )
         generate_lib_file(
-            os.path.join(config.lib.output, to_file_name(config, "Protocol.h")),
+            os.path.join(config.lib.output, to_file_name(config,
+                                                         "Protocol.h")),
             protocol_h_templates,
         )
         generate_lib_file(
-            os.path.join(config.lib.output, to_file_name(config, "Protocol.cpp")),
+            os.path.join(config.lib.output,
+                         to_file_name(config, "Protocol.cpp")),
             protocol_cpp_templates,
         )
         generate_lib_file(
-            os.path.join(
-                config.lib.output, to_file_name(config, "base_string_adapter.h")
-            ),
+            os.path.join(config.lib.output,
+                         to_file_name(config, "base_string_adapter.h")),
             base_string_adapter_h_templates,
         )
         generate_lib_file(
-            os.path.join(
-                config.lib.output, to_file_name(config, "base_string_adapter.cc")
-            ),
+            os.path.join(config.lib.output,
+                         to_file_name(config, "base_string_adapter.cc")),
             base_string_adapter_cc_templates,
         )
 
@@ -762,7 +810,8 @@ def main():
     inputs_ts = max(map(os.path.getmtime, inputs))
     up_to_date = True
     for output_file in outputs.keys():
-        if not os.path.exists(output_file) or os.path.getmtime(output_file) < inputs_ts:
+        if not os.path.exists(
+                output_file) or os.path.getmtime(output_file) < inputs_ts:
             up_to_date = False
             break
     if up_to_date:
