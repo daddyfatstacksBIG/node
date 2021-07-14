@@ -51,11 +51,8 @@ help, questions and discussions.
 [#nodejs-dev](https://openjs-foundation.slack.com/archives/C019Y2T6STH) for
 development of Node.js core specifically.
 
-Node.js also has two IRC channels:
-[#Node.js](https://webchat.freenode.net/?channels=node.js) for general help and
-questions, and
-[#node-dev](https://webchat.freenode.net/?channels=node-dev) for development of
-Node.js core specifically.
+Node.js also has an unofficial IRC channel:
+[#Node.js](https://web.libera.chat/?channels=node.js).
 
 ## Setting up your local environment
 
@@ -298,8 +295,7 @@ $ git push --force-with-lease origin my-branch
 
 **Important:** The `git push --force-with-lease` command is one of the few ways
 to delete history in `git`. Before you use it, make sure you understand the
-risks. If in doubt, you can always ask for guidance in the Pull Request or on
-[IRC in the #node-dev channel][].
+risks. If in doubt, you can always ask for guidance in the Pull Request.
 
 If you happen to make a mistake in any of your commits, do not worry. You can
 amend the last commit (for example if you want to change the commit log).
@@ -358,8 +354,7 @@ your name on it. Congratulations and thanks for your contribution!
 All Node.js contributors who choose to review and provide feedback on Pull
 Requests have a responsibility to both the project and the individual making the
 contribution. Reviews and feedback must be helpful, insightful, and geared
-towards improving the contribution as opposed to simply blocking it. If there
-are reasons why you feel the PR should not land, explain what those are. Do not
+towards improving the contribution as opposed to simply blocking it. Do not
 expect to be able to block a Pull Request from advancing simply because you say
 "No" without giving an explanation. Be open to having your mind changed. Be open
 to working with the contributor to make the Pull Request better.
@@ -421,10 +416,8 @@ changes, so that people who may have important input in such a distributed
 project are able to respond.
 
 For non-trivial changes, Pull Requests must be left open for at least 48 hours.
-In most cases, when the PR is relatively small and focused on a narrow set of
-changes, that will provide more than enough time to adequately review. Sometimes
-changes take far longer to review, or need more specialized review from subject
-matter experts. When in doubt, do not rush.
+Sometimes changes take far longer to review, or need more specialized review
+from subject-matter experts. When in doubt, do not rush.
 
 Trivial changes, typically limited to small formatting changes or fixes to
 documentation, may be landed within the minimum 48 hour window.
@@ -464,11 +457,9 @@ Change requests that are vague, dismissive, or unconstructive may also be
 dismissed if requests for greater clarification go unanswered within a
 reasonable period of time.
 
-If you do not believe that the Pull Request should land at all, use
-`Changes requested` to indicate that you are considering some of your comments
-to block the PR from landing. When doing so, explain *why* you believe the
-Pull Request should not land along with an explanation of what may be an
-acceptable alternative course, if any.
+Use `Changes requested` to block a Pull Request from landing. When doing so,
+explain why you believe the Pull Request should not land along with an
+explanation of what may be an acceptable alternative course, if any.
 
 ### Accept that there are different opinions about what belongs in Node.js
 
@@ -593,7 +584,6 @@ More than one subsystem may be valid for any particular issue or pull request.
 [CI (Continuous Integration) test run]: #ci-testing
 [Code of Conduct]: https://github.com/nodejs/admin/blob/HEAD/CODE_OF_CONDUCT.md
 [Collaborator Guide]: ../collaborator-guide.md
-[IRC in the #node-dev channel]: https://webchat.freenode.net?channels=node-dev&uio=d4
 [Onboarding guide]: ../../../onboarding.md
 [approved]: #getting-approvals-for-your-pull-request
 [benchmark results]: ../writing-and-running-benchmarks.md
